@@ -58,8 +58,8 @@ def apply_hat(hat,fc,x,y,w,h):
 def apply_dog(dog,fc,x,y,w,h):
     face_width = w
     face_height = h
-    dog_width = int(face_width*1.5)+10
-    dog_height = int(face_height*1.75)+10
+    dog_width = int(face_width*1.5)+30
+    dog_height = int(face_height*1.75)+100
     dog = cv2.resize(dog,(dog_width, dog_height))
     for i in range(int(face_height*1.75)):
         for j in range(int(face_width*1.5)):
@@ -103,7 +103,7 @@ def send_mail(recipients):
     img0 = MIMEImage(img0_data, name=os.path.basename('captures/image0.jpg'))
     img1 = MIMEImage(img1_data, name=os.path.basename('captures/image1.jpg'))
     img2 = MIMEImage(img2_data, name=os.path.basename('captures/image2.jpg'))
-    text = MIMEText('Here are your photos! Thank you for '
+    text = MIMEText('Here are your photos. Thank you for '
                     'stopping by the Snapberry Pi booth!')
 
     for recipient in recipients:
@@ -111,11 +111,12 @@ def send_mail(recipients):
         msg['Subject'] = 'Snapberry Pi Photos'
         msg['From'] = gmail_user
         msg['To'] = recipient
-
         msg.attach(text)
         msg.attach(img0)
         msg.attach(img1)
         msg.attach(img2)
+
+        print 'Sending email to {}...'.format(recipient)
 
         try:
             s = smtplib.SMTP('smtp.gmail.com', 587)
@@ -124,7 +125,6 @@ def send_mail(recipients):
             s.login(gmail_user, gmail_passwd)
             s.sendmail(gmail_user, recipient, msg.as_string())
             s.quit()
-            print 'Email sent to {}!'.format(recipient)
         except:
             print 'Failed to send email to {}.'.format(recipient)
 
@@ -146,15 +146,16 @@ def send_sms(recipients):
 
     link0, link1, link2 = get_imgur_links()
 
-    text = MIMEText('Here are your photos! Thank you for stopping by the SnapBerry'
-                    'Pi booth!\n{}\n{}\n{}'.format(link0, link1, link2), 'plain')
+    text = MIMEText('Thank you for stopping by the Snapberry Pi booth!'
+                    '\n{}\n{}\n{}'.format(link0, link1, link2), 'plain')
 
     for recipient in recipients:
+        print 'Sending message to {}...'.format(recipient)
         for gateway in sms_gateways:
             destination = recipient + '@' + gateway
             msg = MIMEMultipart()
-
             msg.attach(text)
+
             try:
                 s = smtplib.SMTP('smtp.gmail.com', 587)
                 s.ehlo()
@@ -162,23 +163,22 @@ def send_sms(recipients):
                 s.login(gmail_user, gmail_passwd)
                 s.sendmail(gmail_user, destination, msg.as_string())
                 s.quit()
-                print 'Message sent to {}!'.format(destination)
             except:
-                print 'Failed to send message to {}.'.format(destination)
+                print 'Failed to send message to {}'.format(destination)
         print ''
 
 
 def get_imgur_links():
     with open('info/cid', 'r') as f:
         CLIENT_ID = f.read().replace('\n', '')
-    img0_path = "captures/image0.jpg"
-    img1_path = "captures/image1.jpg"
-    img2_path = "captures/image2.jpg"
+    img0_path = 'captures/image0.jpg'
+    img1_path = 'captures/image1.jpg'
+    img2_path = 'captures/image2.jpg'
     im = pyimgur.Imgur(CLIENT_ID)
     
-    img0 = im.upload_image(img0_path, title="Mustache")
-    img1 = im.upload_image(img1_path, title="Cowboy Hat")
-    img2 = im.upload_image(img2_path, title="Dog Filter")
+    img0 = im.upload_image(img0_path, title='Mustache')
+    img1 = im.upload_image(img1_path, title='Cowboy Hat')
+    img2 = im.upload_image(img2_path, title='Dog Filter')
 
     return img0.link, img1.link, img2.link
 
@@ -201,10 +201,10 @@ def main():
             sleep(1)
             camera.annotate_text = '4'
             sleep(1)
-            camera.annotate_text = '3'
-            sleep(1)
 
             for i in range(3):
+                camera.annotate_text = '3'
+                sleep(1)
                 camera.annotate_text = '2'
                 sleep(1)
                 camera.annotate_text = '1'
@@ -226,58 +226,59 @@ def main():
                 for (x,y,w,h) in faces:
                     if i == 0:
                         camera.annotate_text = 'Applying moustache filter...'
-                        image = apply_moustache(mst, image, x-35, y-60, w, h)
+                        image = apply_moustache(mst, image, x-40, y-60, w, h)
                     elif i == 1:
                         camera.annotate_text = 'Applying cowboy hat filter...'
                         image = apply_hat(hat, image, x-45, y-70, w, h)
                     elif i == 2:
                         camera.annotate_text = 'Applying dog filter...'
-                        image = apply_dog(dog, image, x-25, y+25, w, h)
+                        image = apply_dog(dog, image, x-40, y-20, w, h)
 
                 # Reset stream and save image.
                 camera.annotate_text = 'Finishing...'
                 cv2.imwrite('captures/image%s.jpg' % i, image)
 
             camera.stop_preview()
-            del arrays[:]
 
         display_images()
+        del arrays[:]
         clear()
+
+        print 'Share your photos!'
+        print 'Press (1) to add a phone number.'
+        print 'Press (2) to add an email.'
+        print 'Press (3) to share.\n'
+
         selection = ''
-        print "Select one of the following:"
-        print "Press (1) to recieve photos through text."
-        print "Press (2) to recieve photos through email."
-        selection =  raw_input("Selection: ")
-        clear()
 
-        if selection == '1':
-            print 'Enter the phone numbers you want the photos to be sent to.'
-            print 'Enter "1" to stop entering phone numbers.'
-            phone = ''
+        while selection != '3':
+            selection = raw_input("Selection: ")
 
-            while phone != '1':
+            if selection == '1':
                 phone = raw_input('Phone number: ')
                 phone = phone.replace(' ', '')
-                if phone != '1':
-                    phones.append(phone)
-
-            send_sms(phones)
-            del phones[:]
-
-        elif selection == '2':
-            print 'Enter the email addresses you want the photos to be sent to.'
-            print 'Enter "1" to stop entering emails.'
-            email = ''
-
-            while email != '1':
+                phones.append(phone)
+            elif selection == '2':
                 email = raw_input('Email address: ')
                 email = email.replace(' ', '')
-                if email != '1':
-                    emails.append(email)
+                emails.append(email)
+            elif selection != '3':
+                print 'Invalid selection.'
 
+            print ''
+
+        clear()
+
+        if len(emails) != 0:
+            print 'Creating email...'
             send_mail(emails)
             del emails[:]
-
+        if len(phones) != 0:
+            print 'Creating message...'
+            send_sms(phones)
+            del phones[:]
+        
+        print 'Thank you for stopping by!'
         sleep(3)
 
 if __name__ == '__main__':

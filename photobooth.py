@@ -103,11 +103,12 @@ def send_mail(recipients):
     img0 = MIMEImage(img0_data, name=os.path.basename('captures/image0.jpg'))
     img1 = MIMEImage(img1_data, name=os.path.basename('captures/image1.jpg'))
     img2 = MIMEImage(img2_data, name=os.path.basename('captures/image2.jpg'))
-    text = MIMEText('Here are your photos! Thank you for stopping by the SnaprBerry booth!')
+    text = MIMEText('Here are your photos! Thank you for '
+                    'stopping by the Snapberry Pi booth!')
 
     for recipient in recipients:
         msg = MIMEMultipart()
-        msg['Subject'] = 'SnapBerry Photos'
+        msg['Subject'] = 'Snapberry Pi Photos'
         msg['From'] = gmail_user
         msg['To'] = recipient
 
@@ -145,7 +146,8 @@ def send_sms(recipients):
 
     link0, link1, link2 = get_imgur_links()
 
-    text = MIMEText('Here are your photos! Thank you for stopping by the SnapBerry booth!\n{}\n{}\n{}'.format(link0, link1, link2), 'plain')
+    text = MIMEText('Here are your photos! Thank you for stopping by the SnapBerry'
+                    'Pi booth!\n{}\n{}\n{}'.format(link0, link1, link2), 'plain')
 
     for recipient in recipients:
         for gateway in sms_gateways:

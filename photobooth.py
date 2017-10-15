@@ -13,6 +13,15 @@ from email.mime.multipart import MIMEMultipart
 from time import sleep
 
 
+IMG0_PATH = 'captures/image0.jpg'
+IMG1_PATH = 'captures/image1.jpg'
+IMG2_PATH = 'captures/image2.jpg'
+GMAIL_USR_PATH = 'info/user'
+GMAIL_PWD_PATH = 'info/passwd'
+IMGUR_CID_PATH = 'info/cid'
+
+term_win_title = 'pi@rp9: ~/Desktop/photobooth'
+
 mst = cv2.imread('filters/mst.png')
 dog = cv2.imread('filters/dog.png')
 hat = cv2.imread('filters/hat.png')
@@ -71,9 +80,9 @@ def apply_dog(dog,fc,x,y,w,h):
 
 def display_images():
     images = [
-        'captures/image0.jpg',
-        'captures/image1.jpg',
-        'captures/image2.jpg'
+        IMG0_PATH,
+        IMG1_PATH,
+        IMG2_PATH
     ]
    
     for image in images:
@@ -84,25 +93,25 @@ def display_images():
         cv2.waitKey(0)
 
     cv2.destroyWindow('Photo')
-    os.system('wmctrl -a "pi@rp9: ~/Desktop/photobooth"')
+    os.system('wmctrl -a "{}"'.format(term_win_title))
 
 
 def send_mail(recipients):
     gmail_user = ''
     gmail_passwd = ''
 
-    with open('info/user', 'r') as user_file:
+    with open(GMAIL_USR_PATH, 'r') as user_file:
         gmail_user = user_file.read().replace('\n', '')
-    with open('info/passwd', 'r') as passwd_file:
+    with open(GMAIL_PWD_PATH, 'r') as passwd_file:
         gmail_passwd = passwd_file.read().replace('\n', '')
 
-    img0_data = open('captures/image0.jpg', 'rb').read()
-    img1_data = open('captures/image1.jpg', 'rb').read()
-    img2_data = open('captures/image2.jpg', 'rb').read()
+    img0_data = open(IMG0_PATH, 'rb').read()
+    img1_data = open(IMG1_PATH, 'rb').read()
+    img2_data = open(IMG2_PATH, 'rb').read()
 
-    img0 = MIMEImage(img0_data, name=os.path.basename('captures/image0.jpg'))
-    img1 = MIMEImage(img1_data, name=os.path.basename('captures/image1.jpg'))
-    img2 = MIMEImage(img2_data, name=os.path.basename('captures/image2.jpg'))
+    img0 = MIMEImage(img0_data, name=os.path.basename(IMG0_PATH))
+    img1 = MIMEImage(img1_data, name=os.path.basename(IMG1_PATH))
+    img2 = MIMEImage(img2_data, name=os.path.basename(IMG2_PATH))
     text = MIMEText('Here are your photos. Thank you for '
                     'stopping by the Snapberry Pi booth!')
 
@@ -133,15 +142,13 @@ def send_sms(recipients):
     gmail_user = ''
     gmail_passwd = ''
     sms_gateways = [
-        'tmomail.net',      # Tmobile
         'mms.att.net',      # AT&T
         'vtext.com',        # Verizon
-        'page.nextel.com',  # Sprint
     ]
 
-    with open('info/user', 'r') as f:
+    with open(GMAIL_USR_PATH, 'r') as f:
         gmail_user = f.read().replace('\n', '')
-    with open('info/passwd', 'r') as f:
+    with open(GMAIL_PWD_PATH, 'r') as f:
         gmail_passwd = f.read().replace('\n', '')
 
     link0, link1, link2 = get_imgur_links()
@@ -171,14 +178,11 @@ def send_sms(recipients):
 def get_imgur_links():
     with open('info/cid', 'r') as f:
         CLIENT_ID = f.read().replace('\n', '')
-    img0_path = 'captures/image0.jpg'
-    img1_path = 'captures/image1.jpg'
-    img2_path = 'captures/image2.jpg'
     im = pyimgur.Imgur(CLIENT_ID)
     
-    img0 = im.upload_image(img0_path, title='Mustache')
-    img1 = im.upload_image(img1_path, title='Cowboy Hat')
-    img2 = im.upload_image(img2_path, title='Dog Filter')
+    img0 = im.upload_image(IMG0_PATH, title='Mustache')
+    img1 = im.upload_image(IMG1_PATH, title='Cowboy Hat')
+    img2 = im.upload_image(IMG2_PATH, title='Dog Filter')
 
     return img0.link, img1.link, img2.link
 
@@ -245,7 +249,7 @@ def main():
         clear()
 
         print 'Share your photos!'
-        print 'Press (1) to add a phone number.'
+        print 'Press (1) to add a phone number (TMobile and Verizon only).'
         print 'Press (2) to add an email.'
         print 'Press (3) to share.\n'
 

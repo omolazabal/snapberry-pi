@@ -31,11 +31,15 @@ dog = cv2.GaussianBlur(dog,(5,5),0)
 hat = cv2.GaussianBlur(hat,(5,5),0)
 
 
-
 def clear():
     os.system('clear')
 
 
+""" The following filter application functions were obtained from GitHub user
+kunalgupta777. I've made some slight modifications to his code so that it could
+work properly with my filters. You can view his source code at the following url:
+https://github.com/kunalgupta777/OpenCV-Face-Filters).
+"""
 def apply_moustache(mst,fc,x,y,w,h):
     face_width = w
     face_height = h
